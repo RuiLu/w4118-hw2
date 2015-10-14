@@ -1,0 +1,101 @@
+1.Exercise 3.10. Construct the process tree as described for the VM used for your programming problems. How does it compare to the Android process tree?
+
+Answer:
+	The process tree for the VM used for programming problems is as follow:                                                                                       
+                                                                                                                                                                     
+                                     ┌────────┐                                          
+                                     │  init  │                                          
+                                     │pid = 1 │                                          
+                                     └────────┘                                          
+                                          │                                              
+            ┌────────────┬─────────────┬──┴──────────┬─────────────┬─────────────┐       
+            ▼            ▼             ▼             ▼             ▼             ▼       
+       ┌─────────┐ ┌──────────┐ ┌────────────┐ ┌──────────┐  ┌──────────┐  ┌───────────┐ 
+       │  udevd  │ │ vmtoolsb │ │VGAuthServic│ │  daemon  │  │  login   │  │   sshd    │ 
+       │pid = 343│ │pid = 1816│ │ pid = 1836 │ │pid = 2552│  │pid = 2889│  │pid = 45279│ 
+       └─────────┘ └──────────┘ └────────────┘ └──────────┘  └──────────┘  └───────────┘ 
+            │                                        │             │             │       
+      ┌─────┴──────┐                                 │             │             │       
+      ▼            ▼                                 ▼             ▼             ▼       
+ ┌─────────┐ ┌───────────┐                    ┌────────────┐┌────────────┐ ┌───────────┐ 
+ │  udevd  │ │   udevd   │                    │mpt-statusd ││    bash    │ │   sshd    │ 
+ │pid = 454│ │pid = 45225│                    │ pid = 2554 ││ pid = 2948 │ │pid = 59156│ 
+ └─────────┘ └───────────┘                    └────────────┘└────────────┘ └───────────┘ 
+                                                     │             │             │       
+                                                     ▼             ▼             ▼       
+                                               ┌───────────┐┌────────────┐ ┌───────────┐ 
+                                               │   sleep   ││    git     │ │   sshd    │ 
+                                               │pid = 60913││pid = 57785 │ │pid = 59158│ 
+                                               └───────────┘└────────────┘ └───────────┘ 
+                                                                   │             │       
+                                                                   ▼             ▼       
+                                                            ┌────────────┐ ┌───────────┐ 
+                                                            │   pager    │ │   bash    │ 
+                                                            │pid = 57786 │ │pid = 59159│ 
+                                                            └────────────┘ └───────────┘ 
+                                                                   │                     
+                                                                   ▼                     
+                                                            ┌────────────┐               
+                                                            │     sh     │               
+                                                            │pid = 57787 │               
+                                                            └────────────┘               
+                                                                   │                     
+                                                                   ▼                     
+                                                            ┌────────────┐               
+                                                            │    bash    │               
+                                                            │pid = 57788 │               
+                                                            └────────────┘               
+                                                                   │                     
+                                                                   ▼                     
+                                                            ┌────────────┐               
+                                                            │     ps     │               
+                                                            │pid = 60914 │               
+                                                            └────────────┘     
+	The process tree for Android is as follow:
+                                          ┌──────────┐                                           
+                                          │ swapper  │                                           
+                                          │ pid = 0  │                                           
+                                          └──────────┘                                           
+                                                │                                                
+                                                ▼                                                
+                                          ┌──────────┐                                           
+                                          │   init   │                                           
+                                          │ pid = 1  │                                           
+                                          └──────────┘                                           
+                                                │                                                
+       ┌───────────┬───────────┬───────────┬────┴──────┬───────────┬───────────┬  
+       │           │           │           │           │           │           │                
+       ▼           ▼           ▼           ▼           ▼           ▼           ▼                
+┌──────────┐┌──────────┐┌──────────┐┌──────────┐┌──────────┐┌──────────┐┌──────────┐
+│ uevented ││ healthd  ││  zygote  ││servicem..││   vold   ││drmserver ││mediaserve││    
+│ pid = 31 ││ pid = 42 ││ pid = 51 ││ pid = 43 ││ pid = 44 ││ pid = 52 ││ pid = 53 │ └──────────┘└──────────┘└──────────┘└──────────┘└──────────┘└──────────┘└──────────┘
+                               │                                                                 
+       ┌───────────┬───────────┼───────────┬───────────┬───────────┐                             
+       ▼           ▼           ▼           ▼           ▼           ▼                             
+ ┌──────────┐┌──────────┐┌──────────┐┌──────────┐┌──────────┐┌──────────┐                        
+ │system_ser││putmethod ││ndroid.lau││ndroid.cal││android.br││d.process.│                        
+ │pid = 373 ││pid = 491 ││pid = 526 ││pid = 859 ││pid = 1006││pid = 759 │                        
+ └──────────┘└──────────┘└──────────┘└──────────┘└──────────┘└──────────┘                        
+
+	 Actually init process and kthread process have the same father - swapper, but in this graph I only show the init process and its children and so on.
+	By comparing these two process trees, I found that VM’s process tree is relatively  dispersive in that application processes and system services are directly forked by init process. While in android’s process tree, these app processes and system services are forked by zygote process, whose father is init process. This is because android is based on Dalvik VM.
+
+
+2.Exercise 3.11. Explain the role of the init process on UNIX and Linux systems in regard to process termination.
+
+Answer:
+	There are mainly three ways to terminate a process. The fist way is that the process finishes executing its final statement and call the system call exit(). The second way is that the process is terminated by terminate/kill signal. The third way is that its parent terminates, which is referred to cascading termination. 	The init process helps when there are orphaned processes. If a process’s parent terminates without invoking wait(), this process would become a orphan, which means that it is running but it has no parent. UNIX and Linux systems address this issue by reparenting orphaned processes to init process. The init process periodically invokes wait(), thereby allowing the exit status of any orphaned process to be collected and releasing the orphan’s PID and process-table entry.3.Exercise 4.7. Under what circumstances does a multithreaded solution using multiple kernel threads provide better performance than a single-threaded solution on a single-processor system?
+Answer:	Let’s firstly look at the single-threaded solution on a single-process system. Tasks could be done concurrently on a single-processor system by dividing execution time of each task. So the processing core is capable of executing only one thread at a time. Otherwise, multiple kernel threads mean that threads can be run in parallel since a process has multiple threads to assign to. Different kernel threads in a process can perform different jobs.	Taking a simple example, if a kernel thread performs a blocking system call, the kernel can schedule another thread for execution on if it has multiple kernel threads. While it is impossible on the single-processor system adopting single-threaded solution. So a multithreaded solution using multiple kernel threads provide better performance in circumstances like there are many blocking system calls in process. 	However, if there were too many kernel threads, the kernel overhead would increase so that the performance would be worse.4.Exercise 4.8. Which of the following components of program state are shared across threads in a multithreaded process?a.Register valuesb.Heap memoryc.Global variablesd.Stack memory
+
+Answer:	Each thread in the same multithreaded process has its own registers, stack and private storage. On the other hand, each thread shares process resources like address space, code, files, process data and so on. Therefore, global variables and heap memory are shared across threads in a multithreaded process.
+
+
+5.Exercise 4.10. In Chapter 3, we discussed Google’s Chrome browser and its practice of opening each new website in a separate process. Would the same benefits have been achieved if instead Chrome had been designed to open each new website in a separate thread? Explain.
+
+Answer:	Google’s Chrome browser has three different kinds of processes, namely browser process, renderer processes and plug-in process. Multiple processes address the issue that single tab crashing results in crashing the entire process. The advantage of the multiprocess approach is that websites run in isolation from one another. Furthermore, this approach minimizes the effects of any security exploits, as textbook says.	I don’t think that the same benefits would have been achieved by opening each new website in a separate thread instead of separate process. Reasons are as follows: 1) Separate thread in the same process shares the same data, therefore security cannot be maintained if the vulnerability of one website was exploited. 2) Threads in the same process share process’s resources, therefore, if a thread crashed, other threads or even the entire process would crash too. 
+
+
+6.Exercise 15.13. Discuss how the clone() operation supported by Linux is used to support both processes and threads.
+
+Answer:	Linux does not distinguish between processes and threads. In fact, Linux generally uses the term task to refer to a flow of control within a program, rather other process and thread. As we all know that fork() system call is used for directly duplicating process, and the clone() system call acts identically to fork(). But clone() system call accepts a set of flags as arguments that dictate what resources are shared between parent and child. If clone() is called with flags, it means that parent and child share some resources, so a new thread is created. If clone() is called without flags, it means there is no resource to be shared, so functions of both fork() and clone() are identical.
+
